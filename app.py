@@ -1,16 +1,16 @@
-from flask import Flask, jsonify, request, send_from_directory, redirect, Response
+from flask import Flask, jsonify, request, Response
 from pytube import YouTube
-from flask_cors import CORS
-import os
+from flask_cors import CORS  # Import Flask-CORS if needed
 
-app = Flask(__name__, static_folder='public')
-CORS(app)  # Enable CORS for all routes
+app = Flask(__name__)
+CORS(app)  # Allow CORS if your frontend is hosted separately
 
-# Serve index.html from the 'public' directory
-@app.route('/')
-def index():
-    return send_from_directory('public', 'index.html')
+# Health check endpoint
+@app.route('/health', methods=['GET'])
+def health():
+    return 'OK', 200
 
+# Endpoint to fetch video qualities
 @app.route('/getQualities', methods=['POST'])
 def get_qualities():
     data = request.json
@@ -22,7 +22,7 @@ def get_qualities():
     try:
         yt = YouTube(video_url)
         title = yt.title
-
+        
         # Get all streams
         streams = yt.streams
 
@@ -56,6 +56,7 @@ def get_qualities():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Endpoint to get download URL for selected format
 @app.route('/getDownloadUrl', methods=['GET'])
 def get_download_url():
     video_url = request.args.get('videoUrl')
@@ -73,14 +74,17 @@ def get_download_url():
 
         download_url = stream.url
 
-        return jsonify({'download_url': download_url})
+        # Get filename from the URL
+        filename = download_url.split('/')[-1]
+        
+        # Set response headers to force download
+        response = Response()
+        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
+        response.headers['X-Accel-Redirect'] = download_url
+        
+        return response
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-# Health check route
-@app.route('/health', methods=['GET'])
-def health():
-    return 'OK', 200
 
 if __name__ == '__main__':
     app.run(debug=True)
