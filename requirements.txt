@@ -1,4 +1,4 @@
 Flask
 pytube3
 gunicorn
-flask-cors
+Flask-Cors
