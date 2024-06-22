@@ -1,16 +1,14 @@
-from flask import Flask, jsonify, request, Response, send_from_directory
-from flask_cors import CORS
+from flask import Flask, jsonify, request, send_from_directory, redirect
 from pytube import YouTube
+import os
 
 app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
 
-# Serve static files (your HTML file)
+# Serve index.html from the 'public' directory
 @app.route('/')
 def index():
-    return send_from_directory('static', 'index.html')
+    return send_from_directory('public', 'index.html')
 
-# Endpoint to fetch video qualities
 @app.route('/getQualities', methods=['POST'])
 def get_qualities():
     data = request.json
@@ -56,7 +54,6 @@ def get_qualities():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
-# Endpoint to get download URL for a specific quality
 @app.route('/getDownloadUrl', methods=['GET'])
 def get_download_url():
     video_url = request.args.get('videoUrl')
@@ -73,21 +70,9 @@ def get_download_url():
             return jsonify({'error': 'Stream not found'}), 404
 
         download_url = stream.url
-        filename = download_url.split('/')[-1]
-
-        # Prepare response to force download
-        response = Response()
-        response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
-        response.headers['X-Accel-Redirect'] = download_url
-        
-        return response
+        return redirect(download_url)  # Redirect to the actual video file URL
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
-# Health check endpoint
-@app.route('/health', methods=['GET'])
-def health():
-    return 'OK', 200
 
 if __name__ == '__main__':
     app.run(debug=True)
