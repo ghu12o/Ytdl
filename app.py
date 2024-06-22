@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, Response
+from flask import Flask, jsonify, request
 from flask_cors import CORS
 from pytube import YouTube
 
@@ -9,10 +9,9 @@ CORS(app)  # Enable CORS for all routes
 def index():
     return 'Hello, this is the root endpoint of the application.'
 
-@app.route('/getQualities', methods=['POST'])
+@app.route('/getQualities', methods=['GET'])
 def get_qualities():
-    data = request.json
-    video_url = data.get('url')
+    video_url = request.args.get('url')
 
     if not video_url:
         return jsonify({'error': 'Missing video URL'}), 400
@@ -82,4 +81,4 @@ def health():
     return 'OK', 200
 
 if __name__ == '__main__':
-    app.run()  # Do not enable debug mode here
+    app.run()
