@@ -73,6 +73,8 @@ def get_download_url():
         return redirect(download_url)  # Redirect to the actual video file URL
     except Exception as e:
         return jsonify({'error': str(e)}), 500
-
+@app.route('/health', methods=['GET'])
+def health():
+    return 'OK', 200
 if __name__ == '__main__':
     app.run(debug=True)
