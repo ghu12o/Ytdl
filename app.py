@@ -1,17 +1,20 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, Response, send_from_directory
 from flask_cors import CORS
 from pytube import YouTube
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
 
+# Serve static files (your HTML file)
 @app.route('/')
 def index():
-    return 'Hello, this is the root endpoint of the application.'
+    return send_from_directory('static', 'index.html')
 
-@app.route('/getQualities', methods=['GET'])
+# Endpoint to fetch video qualities
+@app.route('/getQualities', methods=['POST'])
 def get_qualities():
-    video_url = request.args.get('url')
+    data = request.json
+    video_url = data.get('url')
 
     if not video_url:
         return jsonify({'error': 'Missing video URL'}), 400
@@ -20,8 +23,10 @@ def get_qualities():
         yt = YouTube(video_url)
         title = yt.title
         
+        # Get all streams
         streams = yt.streams
 
+        # Filter video streams (MP4)
         video_formats = []
         for stream in streams.filter(file_extension='mp4'):
             video_formats.append({
@@ -32,6 +37,7 @@ def get_qualities():
                 'type': 'video'
             })
 
+        # Filter audio streams (MP4 and WebM)
         audio_formats = []
         for stream in streams.filter(type='audio'):
             audio_formats.append({
@@ -50,6 +56,7 @@ def get_qualities():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Endpoint to get download URL for a specific quality
 @app.route('/getDownloadUrl', methods=['GET'])
 def get_download_url():
     video_url = request.args.get('videoUrl')
@@ -68,6 +75,7 @@ def get_download_url():
         download_url = stream.url
         filename = download_url.split('/')[-1]
 
+        # Prepare response to force download
         response = Response()
         response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
         response.headers['X-Accel-Redirect'] = download_url
@@ -76,9 +84,10 @@ def get_download_url():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# Health check endpoint
 @app.route('/health', methods=['GET'])
 def health():
     return 'OK', 200
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)
