@@ -3,7 +3,7 @@ from flask_cors import CORS
 from pytube import YouTube
 
 app = Flask(__name__)
-CORS(app)
+CORS(app)  # Enable CORS for all routes
 
 @app.route('/')
 def index():
@@ -20,7 +20,7 @@ def get_qualities():
     try:
         yt = YouTube(video_url)
         title = yt.title
-
+        
         streams = yt.streams
 
         video_formats = []
@@ -72,7 +72,7 @@ def get_download_url():
         response = Response()
         response.headers['Content-Disposition'] = f'attachment; filename="{filename}"'
         response.headers['X-Accel-Redirect'] = download_url
-
+        
         return response
     except Exception as e:
         return jsonify({'error': str(e)}), 500
@@ -82,4 +82,4 @@ def health():
     return 'OK', 200
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()  # Do not enable debug mode here
