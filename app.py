@@ -5,6 +5,10 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/health', methods=['GET'])
+def health_check():
+    return "i am ok"
+    
 @app.route('/get_streams_and_links', methods=['POST'])
 def get_streams_and_links():
     data = request.get_json()
