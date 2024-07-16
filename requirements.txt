@@ -1,4 +1,4 @@
 Flask
-pytube==15.0.0
+pytube==12.1.3
 gunicorn
 Flask-Cors
